@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "homepage": "https://github.com/LirWe786/React-Generator-Component---rgc#readme",
+  "bin": {
+    "rgc": "./index.js"
+  },
   "bugs": {
     "url": "https://github.com/LirWe786/React-Generator-Component---rgc/issues"
   },
