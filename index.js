@@ -2,70 +2,84 @@
 const path = require("node:path");
 const fs = require("node:fs/promises");
 
+const componentName = process.argv[2] //аргумент с названием компонента
+const archFolderName = process.argv[3] //аргумент с названием папки архитектуры, если аргумент есть значит используется atomic design
+const validName = validateFileName(componentName);
+const jsxData = `import styles from './${componentName}.module.css'; 
+         export default function ${validName}() { 
+                 return ( 
+                     <div className={styles.${componentName} }></div>
+                     
+                     )}`
 
 
-async function validateFileName(componentName) {
-    const strg = componentName
-    let arr = strg.split('')
-    let fsrtSymbol = arr[0].toUpperCase()
-    arr[0] = fsrtSymbol;
-    return arr.join('')
+function validateFileName(componentName) {
+    try {
+
+        const strg = componentName
+        let arr = strg.split('')
+        let fsrtSymbol = arr[0].toUpperCase()
+        arr[0] = fsrtSymbol;
+        return arr.join('')
+    } catch (error) {
+        console.error(`Ошибка валидации имени компонента: `, error.message)
+    }
 }
 
-async function createFile(componentName, dir, extension, data) {
-  
-    const filePath = path.join(dir, `${componentName}.${extension}`) // путь для jsx файла
-    await fs.writeFile(filePath, `import './${componentName}.module.css'`, "utf-8");// создаем сам jsx файл
-    console.log(`\n ${componentName}${extension} файл создан`)
+async function createFile(componentName, dir, extension) {
+    try {
+
+        const filePath = path.join(dir, `${componentName}.${extension}`)
+        if (extension == 'jsx') {
+            console.log(extension)
+            await fs.writeFile(filePath, jsxData, "utf-8");
+        } else {
+            await fs.writeFile(filePath, `.${componentName}{}`, "utf-8");
+        }
+    } catch (error) {
+        console.error(`Ошибка создания файла ${componentName}.${extension}: `, error.message)
+    }
+
 }
 
 async function main() {
-
-
-
     try {
         let dir;
-        const componentName = process.argv[2]//берем первый аргумент с консоли 
-        const currentDir = process.cwd(); //ищем директорию где запускается скрипт
+        const currentDir = process.cwd();
 
-        let dirFiles = await fs.readdir(currentDir); //читаем директорию проекта
-        if (dirFiles.includes('src')) { //проверяем есть ли src папка
-            dir = path.join(currentDir, '/src/app');//если да то присваиваем путь с src 
-            console.log(dir);
+        let dirFiles = await fs.readdir(currentDir);
+        if (dirFiles.includes('src')) {
+            dir = path.join(currentDir, '/src/app');
         }
         else {
-            dir = path.join(currentDir, '/app');//если нет src то путь с app
-            console.log(dir);
+            dir = path.join(currentDir, '/app');
         }
 
-        dirFiles = await fs.readdir(dir); //читаем папку app 
-        dir = path.join(dir, '/components')// добавляем к пути components
+        dirFiles = await fs.readdir(dir);
+        dir = path.join(dir, '/components')
 
 
-        if (!dirFiles.includes('components')) { // проверяет есть ли папка components в app
-            //cсоздание папки компонентов если ее нет
-            await fs.mkdir(dir) //если папки нет создаем ее
+        if (!dirFiles.includes('components')) {
+            await fs.mkdir(dir)
         }
 
-        dir = path.join(dir, `${componentName}`) // добавляем к пути название будущего компонента
+        const componentsDirList = await fs.readdir(dir);
 
-        await fs.mkdir(dir) //создаем папку под компонент
-        console.log('\n папка создана');
+        if (componentsDirList.includes(archFolderName)) {
+            dir = path.join(dir, `${archFolderName}`)
+        }
 
-        // const jsxFilePath = path.join(dir, `${componentName}.jsx`) // путь для jsx файла
-        // console.log(jsxFilePath, "   jsx")
-        // await fs.writeFile(jsxFilePath, `import './${componentName}module.css'`, "utf-8");// создаем сам jsx файл
-        // console.log('\n jsx файл создан')
+        dir = path.join(dir, `${componentName}`)
 
-
+        await fs.mkdir(dir)
         await createFile(componentName, dir, 'jsx');
         await createFile(componentName, dir, 'module.css');
 
 
-        console.log('\n component complite')
+        console.log('\n Компонент создан')
 
     } catch (error) {
-        console.log(error)
+        console.error(' \n \n Ошибка:', error.message)
     }
 }
 
