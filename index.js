@@ -4,16 +4,15 @@ const fs = require("node:fs/promises");
 
 const componentName = process.argv[2] //аргумент с названием компонента
 const archFolderName = process.argv[3] //аргумент с названием папки архитектуры, если аргумент есть значит используется atomic design
-const validName = validateFileName(componentName);
+const upperedName = toUpperCaseFirstSymbolOfComponentName(componentName);
 const jsxData = `import styles from './${componentName}.module.css'; 
-         export default function ${validName}() { 
+         export default function ${upperedName}() { 
                  return ( 
                      <div className={styles.${componentName} }></div>
                      
                      )}`
 
-
-function validateFileName(componentName) {
+function toUpperCaseFirstSymbolOfComponentName(componentName) {
     try {
 
         const strg = componentName
